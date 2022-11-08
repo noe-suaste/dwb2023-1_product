@@ -1,5 +1,7 @@
 package com.product.api.controller;
 
+import java.util.List;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +29,11 @@ public class CtrlProduct {
 	@Autowired
 	SvcProduct svc;
 	
-	// 1. Implementar método getProduct -- IMPLEMENTADO
+	@GetMapping("/category/{category_id}")
+	public ResponseEntity<List<Product>> listProducts(@PathVariable("category_id") Integer category_id){
+		return new ResponseEntity<>(svc.listProducts(category_id), HttpStatus.OK);
+	}
+	
 	@GetMapping("/{gtin}")
 	public ResponseEntity<Product> getProduct(@PathVariable("gtin") String gtin){
 		return new ResponseEntity<>(svc.getProduct(gtin), HttpStatus.OK);
@@ -47,10 +53,16 @@ public class CtrlProduct {
 		return new ResponseEntity<>(svc.updateProduct(in, id),HttpStatus.OK);
 	}
 	
-	// 2. Implementar método updateProductStock -- IMPLEMENTADO
 	@PutMapping("/product/{gtin}/stock/{stock}")
 	public ResponseEntity<ApiResponse> updateProductStock(@PathVariable("gtin") String gtin, @PathVariable("stock") Integer stock){
 		return new ResponseEntity<>(svc.updateProductStock(gtin, stock), HttpStatus.OK);
+	}
+	
+	@PutMapping("/{gtin}/category")
+	public ResponseEntity<ApiResponse> updateProductCategory(@PathVariable("gtin") String gtin, @Valid @RequestBody Integer category_id, BindingResult bindingResult){
+		if(bindingResult.hasErrors())
+			throw new ApiException(HttpStatus.BAD_REQUEST, bindingResult.getAllErrors().get(0).getDefaultMessage());
+		return new ResponseEntity<>(svc.updateProductCategory(gtin, category_id), HttpStatus.OK);
 	}
 	
 	@DeleteMapping("/{id}")
