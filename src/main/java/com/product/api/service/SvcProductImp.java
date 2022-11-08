@@ -1,6 +1,7 @@
 package com.product.api.service;
 
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.List;
 
 import javax.validation.ConstraintViolationException;
 
@@ -25,6 +26,11 @@ public class SvcProductImp implements SvcProduct {
 	RepoCategory repoCategory;
 
 	@Override
+	public List<Product> listProducts(Integer category_id){
+		return repo.findByCategoryId(category_id);
+	}
+	
+	@Override
 	public Product getProduct(String gtin) {
 		Product product = repo.getProduct(gtin);
 		if (product != null) {
@@ -34,13 +40,6 @@ public class SvcProductImp implements SvcProduct {
 			throw new ApiException(HttpStatus.NOT_FOUND, "product does not exist");
 	}
 
-	/*
-	 * 4. Implementar el método createProduct considerando las siguientes validaciones:
-  		1. validar que la categoría del nuevo producto exista
-  		2. el código GTIN y el nombre del producto son únicos
-  		3. si al intentar realizar un nuevo registro ya existe un producto con el mismo GTIN pero tiene estatus 0, 
-  		   entonces se debe cambiar el estatus del producto existente a 1 y actualizar sus datos con los del nuevo registro
-	 */
 	@Override
 	public ApiResponse createProduct(Product in) {
 		if(in != null){
@@ -95,5 +94,18 @@ public class SvcProductImp implements SvcProduct {
 		
 		repo.updateProductStock(gtin, product.getStock() - stock);
 		return new ApiResponse("product stock updated");
+	}
+	
+	@Override 
+	public  ApiResponse updateProductCategory(String gtin, Integer category_id) {
+		Product product = getProduct(gtin);
+		if(product == null) {
+			throw new ApiException(HttpStatus.BAD_REQUEST, "product does not exist");
+		}
+		if(repoCategory.findByCategoryId(category_id) == null) {
+			throw new ApiException(HttpStatus.BAD_REQUEST, "category not found");
+		}
+		repo.updateProductCategory(gtin, category_id);
+		return new ApiResponse("product category updated");
 	}
 }
